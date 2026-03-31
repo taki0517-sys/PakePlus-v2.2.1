@@ -1,11 +1,872 @@
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>PakePlus</title>
-    </head>
-    <body>
-        Hello World
-    </body>
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+    <title>哺乳助手 - 智能吸奶计时器</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            background: #fdf2f0;
+            font-family: system-ui, -apple-system, 'Segoe UI', Helvetica, 'Noto Sans', sans-serif;
+            margin: 0;
+            padding: 20px 16px 32px;
+            color: #4a2a2a;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .card {
+            background: white;
+            border-radius: 32px;
+            padding: 20px 18px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+        }
+        h1 {
+            font-size: 1.8rem;
+            margin: 0 0 6px 0;
+            font-weight: 600;
+            color: #d45a6c;
+        }
+        .sub {
+            font-size: 0.9rem;
+            color: #b2827a;
+            margin-bottom: 20px;
+            border-left: 3px solid #f3bfbf;
+            padding-left: 12px;
+        }
+        h2 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin: 0 0 12px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #3e2a2a;
+        }
+        .step-list {
+            margin: 16px 0 12px;
+            max-height: 380px;
+            overflow-y: auto;
+            border-radius: 24px;
+        }
+        .step-item {
+            background: #fff9f7;
+            border-radius: 28px;
+            padding: 8px 12px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: nowrap;
+            border: 1px solid #ffe0db;
+        }
+        .step-index {
+            background: #f0d6d2;
+            width: 32px;
+            min-width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #a54454;
+            flex-shrink: 0;
+        }
+        .step-name {
+            flex: 2;
+            min-width: 0;
+        }
+        .step-name input {
+            width: 100%;
+            padding: 10px 6px;
+            border: 1px solid #ffcdc5;
+            border-radius: 24px;
+            font-size: 0.85rem;
+            background: white;
+            text-align: center;
+            font-weight: 500;
+        }
+        .step-time {
+            flex: 1;
+            min-width: 0;
+        }
+        .step-time input {
+            width: 100%;
+            padding: 10px 4px;
+            border: 1px solid #ffcdc5;
+            border-radius: 24px;
+            font-size: 0.85rem;
+            text-align: center;
+            background: white;
+            font-weight: 500;
+        }
+        .delete-btn {
+            background: #ffefed;
+            border: none;
+            width: 36px;
+            min-width: 36px;
+            height: 36px;
+            border-radius: 36px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #d45a6c;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .delete-btn:active { background: #fadbd6; transform: scale(0.95); }
+        .add-btn {
+            background: #f5e2de;
+            border: 1px dashed #d45a6c;
+            width: 100%;
+            padding: 14px;
+            border-radius: 48px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #d45a6c;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+        .add-btn:active { background: #eed9d4; transform: scale(0.97); }
+        button {
+            background: #d45a6c;
+            border: none;
+            color: white;
+            font-weight: 600;
+            border-radius: 60px;
+            padding: 14px 20px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            width: 100%;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+        button:active { transform: scale(0.97); background: #bc4c5c; }
+        .secondary-btn {
+            background: #e9cdc8;
+            color: #6e3e3a;
+            box-shadow: none;
+        }
+        .timer-area {
+            text-align: center;
+            background: #ffeae6;
+            border-radius: 48px;
+            padding: 24px 16px;
+        }
+        .current-step-name {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: white;
+            display: inline-block;
+            padding: 8px 24px;
+            border-radius: 60px;
+            margin-bottom: 20px;
+            color: #d45a6c;
+            transition: all 0.3s ease;
+        }
+        .current-step-name.waiting-mode {
+            font-size: 1.2rem;
+            background: #f5e2de;
+            color: #b2827a;
+            opacity: 0.7;
+            transform: scale(0.9);
+        }
+        .next-step-hint {
+            font-size: 0.9rem;
+            background: #f9e5e0;
+            border-radius: 28px;
+            padding: 8px;
+            transition: all 0.3s ease;
+        }
+        .next-step-hint.waiting-mode {
+            font-size: 1.3rem;
+            font-weight: bold;
+            background: #ffd700;
+            color: #a54454;
+            padding: 12px;
+            margin: 8px 0;
+            box-shadow: 0 0 0 3px #ffb347;
+            animation: pulse 1s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); background: #ffd700; }
+            50% { transform: scale(1.02); background: #ffed9e; }
+        }
+        .big-timer {
+            font-size: 4.2rem;
+            font-weight: 800;
+            font-family: monospace;
+            background: #2e1f1c;
+            color: #fff2ef;
+            padding: 20px 12px;
+            border-radius: 64px;
+            margin: 16px 0;
+        }
+        .step-progress {
+            background: #f4ddd8;
+            border-radius: 60px;
+            padding: 10px 16px;
+            font-weight: 500;
+            margin: 16px 0 10px;
+        }
+        .control-buttons {
+            display: flex;
+            gap: 12px;
+            margin: 20px 0 12px;
+        }
+        .control-buttons button {
+            flex: 1;
+            background: white;
+            color: #d45a6c;
+            border: 1px solid #f3bfbf;
+        }
+        .confirm-btn {
+            background: #4c9f70;
+            margin-top: 12px;
+            font-size: 1.2rem;
+            animation: btnPulse 0.8s ease-in-out infinite;
+        }
+        @keyframes btnPulse {
+            0%, 100% { transform: scale(1); background: #4c9f70; }
+            50% { transform: scale(1.02); background: #5db87e; }
+        }
+        .info-text {
+            font-size: 0.85rem;
+            color: #b28b82;
+            text-align: center;
+            margin-top: 20px;
+        }
+        .flex-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .reminder-badge {
+            background: #ff6b6b;
+            color: white;
+            border-radius: 40px;
+            padding: 8px 16px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            display: inline-block;
+            margin-top: 12px;
+            animation: badgeBlink 1s ease-in-out infinite;
+        }
+        @keyframes badgeBlink {
+            0%, 100% { opacity: 1; background: #ff6b6b; }
+            50% { opacity: 0.7; background: #ff4444; }
+        }
+        .trial-badge {
+            background: #f0d6d2;
+            color: #a54454;
+            padding: 6px 12px;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            display: inline-block;
+            margin-bottom: 12px;
+        }
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .modal-box {
+            background: white;
+            border-radius: 32px;
+            padding: 24px;
+            width: 85%;
+            max-width: 320px;
+            text-align: center;
+        }
+        .modal-box input {
+            width: 100%;
+            padding: 12px;
+            margin: 16px 0;
+            border: 1px solid #ffcdc5;
+            border-radius: 28px;
+            font-size: 1rem;
+            text-align: center;
+        }
+        .modal-box button {
+            margin-top: 8px;
+        }
+        @media (max-width: 420px) {
+            .step-item { padding: 6px 10px; gap: 6px; }
+            .step-index { width: 28px; min-width: 28px; height: 28px; font-size: 0.75rem; }
+            .step-name input, .step-time input { padding: 8px 4px; font-size: 0.8rem; }
+            .delete-btn { width: 32px; min-width: 32px; height: 32px; font-size: 1rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>🍼 吸奶计时器</h1>
+    <div class="sub">预设档位 · 倒计时提醒 · 手动确认换档</div>
+
+    <div id="trialInfo" class="card" style="text-align: center; padding: 12px;">
+        <div class="trial-badge" id="trialStatus">免费试用剩余 3 次</div>
+        <div class="info-text" id="trialHint">✨ 前3次免费，之后需解锁永久使用</div>
+    </div>
+
+    <div class="card" id="presetCard">
+        <h2>📋 吸奶方案</h2>
+        <div id="stepsContainer" class="step-list"></div>
+        <button id="addStepBtn" class="add-btn">+ 添加档位</button>
+        <div class="flex-row" style="margin-top: 16px; gap: 12px;">
+            <button id="resetDefaultBtn" class="secondary-btn" style="flex:1;">恢复示例</button>
+            <button id="startBtn" style="flex:2;">▶ 开始吸奶流程</button>
+        </div>
+    </div>
+
+    <div class="card" id="timerCard" style="display: none;">
+        <h2>⏳ 当前档位</h2>
+        <div class="timer-area">
+            <div><span class="current-step-name" id="currentStepName">--</span></div>
+            <div class="big-timer" id="timerDisplay">00:00</div>
+            <div class="step-progress" id="stepProgressText">第 0 / 0 步</div>
+            <div id="nextStepHint" class="next-step-hint">⏩ 下一步: --</div>
+            <div class="control-buttons" id="controlButtons">
+                <button id="pauseResumeBtn">⏸ 暂停</button>
+                <button id="stopProcessBtn">🛑 停止</button>
+            </div>
+            <div id="manualConfirmArea" style="display: none;">
+                <button id="nextStepConfirmBtn" class="confirm-btn">✅ 确认，进入下一档位</button>
+                <div class="reminder-badge">🔔 持续提醒中，请确认</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ==================== 试用限制 ====================
+    const STORAGE_TRIAL = 'lactation_trial_remaining';
+    const STORAGE_UNLOCK = 'lactation_unlocked';
+    let trialRemaining = 3;
+    let isUnlocked = false;
+
+    function loadTrialStatus() {
+        const unlocked = localStorage.getItem(STORAGE_UNLOCK);
+        if (unlocked === 'true') {
+            isUnlocked = true;
+            trialRemaining = Infinity;
+            document.getElementById('trialStatus').innerText = '✅ 已解锁永久使用';
+            document.getElementById('trialHint').innerHTML = '感谢支持，祝吸奶愉快 💕';
+            return;
+        }
+        const saved = localStorage.getItem(STORAGE_TRIAL);
+        if (saved !== null) {
+            trialRemaining = parseInt(saved, 10);
+            if (isNaN(trialRemaining)) trialRemaining = 3;
+        } else {
+            trialRemaining = 3;
+            localStorage.setItem(STORAGE_TRIAL, trialRemaining);
+        }
+        document.getElementById('trialStatus').innerText = `免费试用剩余 ${trialRemaining} 次`;
+    }
+
+    function consumeTrial() {
+        if (isUnlocked) return true;
+        if (trialRemaining > 0) {
+            trialRemaining--;
+            localStorage.setItem(STORAGE_TRIAL, trialRemaining);
+            document.getElementById('trialStatus').innerText = `免费试用剩余 ${trialRemaining} 次`;
+            if (trialRemaining === 0) {
+                document.getElementById('trialHint').innerHTML = '⚠️ 试用次数已用完，请解锁永久使用';
+            }
+            return true;
+        }
+        return false;
+    }
+
+    // ==================== 密码验证 ====================
+    function generatePasswordForTime(minuteOfDay) {
+        const val = (minuteOfDay * 131) % 1000000;
+        return val.toString().padStart(6, '0');
+    }
+
+    function getCurrentMinuteOfDay() {
+        const now = new Date();
+        return now.getHours() * 60 + now.getMinutes();
+    }
+
+    function verifyPassword(inputPwd) {
+        const currentMinute = getCurrentMinuteOfDay();
+        for (let offset = -2; offset <= 2; offset++) {
+            let minute = currentMinute + offset;
+            if (minute < 0) minute += 1440;
+            if (minute >= 1440) minute -= 1440;
+            const expected = generatePasswordForTime(minute);
+            if (inputPwd === expected) return true;
+        }
+        return false;
+    }
+
+    function showUnlockModal() {
+        return new Promise((resolve) => {
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.innerHTML = `
+                <div class="modal-box">
+                    <h3 style="margin:0 0 8px;">🔐 解锁永久使用</h3>
+                    <p style="font-size:0.85rem; color:#b2827a;">免费试用已用完，输入密码即可永久解锁</p>
+                    <p style="font-size:0.75rem; color:#d45a6c;">闲鱼搜索"taki吸奶器计时器" 九块九获取密码</p>
+                    <input type="text" id="unlockCode" placeholder="输入6位密码" maxlength="6" autocomplete="off">
+                    <button id="unlockConfirm">确认解锁</button>
+                    <button id="unlockCancel" class="secondary-btn" style="margin-top:8px;">暂不</button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            const input = modal.querySelector('#unlockCode');
+            const confirmBtn = modal.querySelector('#unlockConfirm');
+            const cancelBtn = modal.querySelector('#unlockCancel');
+            const handleConfirm = () => {
+                const code = input.value.trim();
+                if (verifyPassword(code)) {
+                    localStorage.setItem(STORAGE_UNLOCK, 'true');
+                    isUnlocked = true;
+                    trialRemaining = Infinity;
+                    document.getElementById('trialStatus').innerText = '✅ 已解锁永久使用';
+                    document.getElementById('trialHint').innerHTML = '感谢支持，祝吸奶愉快 💕';
+                    modal.remove();
+                    resolve(true);
+                } else {
+                    alert('密码错误，请确认后重试');
+                    input.value = '';
+                    input.focus();
+                }
+            };
+            confirmBtn.onclick = handleConfirm;
+            cancelBtn.onclick = () => { modal.remove(); resolve(false); };
+            input.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleConfirm(); });
+            input.focus();
+        });
+    }
+
+    // ==================== 核心计时器 ====================
+    let steps = [];
+    let currentStepIndex = 0;
+    let isActive = false;
+    let isWaitingConfirm = false;
+    let isPaused = false;
+    let targetEndTime = null;
+    let remainingSeconds = 0;
+    let timerRAF = null;
+    let reminderInterval = null;
+    let audioCtx = null;
+
+    // DOM 元素
+    const stepsContainer = document.getElementById('stepsContainer');
+    const addStepBtn = document.getElementById('addStepBtn');
+    const resetDefaultBtn = document.getElementById('resetDefaultBtn');
+    const startBtn = document.getElementById('startBtn');
+    const timerCard = document.getElementById('timerCard');
+    const presetCard = document.getElementById('presetCard');
+    const currentStepNameSpan = document.getElementById('currentStepName');
+    const timerDisplay = document.getElementById('timerDisplay');
+    const stepProgressText = document.getElementById('stepProgressText');
+    const nextStepHint = document.getElementById('nextStepHint');
+    const pauseResumeBtn = document.getElementById('pauseResumeBtn');
+    const stopProcessBtn = document.getElementById('stopProcessBtn');
+    const manualConfirmArea = document.getElementById('manualConfirmArea');
+    const nextStepConfirmBtn = document.getElementById('nextStepConfirmBtn');
+
+    function formatTime(seconds) {
+        let mins = Math.floor(seconds / 60);
+        let secs = seconds % 60;
+        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    function updateDisplayFromTimestamp() {
+        if (!isActive || isWaitingConfirm || isPaused || !targetEndTime) {
+            timerDisplay.innerText = formatTime(remainingSeconds);
+            return;
+        }
+        const now = Date.now();
+        let remaining = Math.max(0, Math.ceil((targetEndTime - now) / 1000));
+        remainingSeconds = remaining;
+        timerDisplay.innerText = formatTime(remaining);
+        
+        if (remaining <= 0 && targetEndTime && !isWaitingConfirm) {
+            clearTimerRAF();
+            onCurrentStepFinish();
+        }
+    }
+
+    function tick() {
+        if (!isActive) return;
+        updateDisplayFromTimestamp();
+        if (timerRAF) timerRAF = requestAnimationFrame(tick);
+    }
+
+    function startTimerRAF() {
+        if (timerRAF) cancelAnimationFrame(timerRAF);
+        timerRAF = requestAnimationFrame(tick);
+    }
+
+    function clearTimerRAF() {
+        if (timerRAF) { cancelAnimationFrame(timerRAF); timerRAF = null; }
+    }
+
+    async function playEnhancedAlert() {
+        try {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') await audioCtx.resume();
+            const now = audioCtx.currentTime;
+            const osc1 = audioCtx.createOscillator();
+            const gain1 = audioCtx.createGain();
+            osc1.connect(gain1); gain1.connect(audioCtx.destination);
+            osc1.frequency.value = 880; gain1.gain.value = 0.4; osc1.type = 'sine';
+            gain1.gain.exponentialRampToValueAtTime(0.00001, now + 0.4);
+            osc1.start(now); osc1.stop(now + 0.35);
+            
+            const osc2 = audioCtx.createOscillator();
+            const gain2 = audioCtx.createGain();
+            osc2.connect(gain2); gain2.connect(audioCtx.destination);
+            osc2.frequency.value = 660; gain2.gain.value = 0.4; osc2.type = 'sine';
+            gain2.gain.exponentialRampToValueAtTime(0.00001, now + 0.7);
+            osc2.start(now + 0.25); osc2.stop(now + 0.65);
+            
+            const osc3 = audioCtx.createOscillator();
+            const gain3 = audioCtx.createGain();
+            osc3.connect(gain3); gain3.connect(audioCtx.destination);
+            osc3.frequency.value = 1046; gain3.gain.value = 0.45; osc3.type = 'sine';
+            gain3.gain.exponentialRampToValueAtTime(0.00001, now + 1.0);
+            osc3.start(now + 0.55); osc3.stop(now + 0.95);
+        } catch(e) { console.warn(e); }
+    }
+
+    function vibrateEnhanced() {
+        if (window.navigator && window.navigator.vibrate) window.navigator.vibrate([500, 200, 300]);
+    }
+
+    function startPersistentReminder() {
+        if (reminderInterval) clearInterval(reminderInterval);
+        playEnhancedAlert(); vibrateEnhanced();
+        reminderInterval = setInterval(() => {
+            if (isActive && isWaitingConfirm) {
+                playEnhancedAlert(); vibrateEnhanced();
+            } else stopPersistentReminder();
+        }, 2000);
+    }
+    
+    function stopPersistentReminder() { 
+        if (reminderInterval) { clearInterval(reminderInterval); reminderInterval = null; }
+    }
+    
+    function updateWaitingVisuals() {
+        if (isWaitingConfirm) {
+            currentStepNameSpan.classList.add('waiting-mode');
+            nextStepHint.classList.add('waiting-mode');
+        } else {
+            currentStepNameSpan.classList.remove('waiting-mode');
+            nextStepHint.classList.remove('waiting-mode');
+        }
+    }
+
+    async function onCurrentStepFinish() {
+        if (!isActive || isWaitingConfirm) return;
+        clearTimerRAF();
+        targetEndTime = null;
+        isWaitingConfirm = true;
+        isPaused = false;
+        remainingSeconds = 0;
+        timerDisplay.innerText = formatTime(0);
+        updateWaitingVisuals();
+        document.getElementById('controlButtons').style.display = 'none';
+        manualConfirmArea.style.display = 'block';
+        startPersistentReminder();
+    }
+
+    function startStepCountdown(stepIndex) {
+        if (stepIndex >= steps.length) {
+            finishAllSteps();
+            return;
+        }
+        stopPersistentReminder();
+        const step = steps[stepIndex];
+        const durationSeconds = Math.floor(step.durationMinutes * 60);
+        if (durationSeconds <= 0) {
+            manualConfirmAndNext();
+            return;
+        }
+        
+        targetEndTime = Date.now() + durationSeconds * 1000;
+        remainingSeconds = durationSeconds;
+        isWaitingConfirm = false;
+        isPaused = false;
+        
+        updateWaitingVisuals();
+        document.getElementById('controlButtons').style.display = 'flex';
+        manualConfirmArea.style.display = 'none';
+        
+        currentStepNameSpan.innerText = step.name;
+        timerDisplay.innerText = formatTime(remainingSeconds);
+        stepProgressText.innerText = `第 ${stepIndex+1} / ${steps.length} 步`;
+        
+        if (stepIndex + 1 < steps.length) {
+            nextStepHint.innerHTML = `⏩ 下一步: ${steps[stepIndex+1].name} (${steps[stepIndex+1].durationMinutes}分钟)`;
+        } else {
+            nextStepHint.innerHTML = `🏁 最后一步，完成后结束流程`;
+        }
+        
+        startTimerRAF();
+    }
+
+    function manualConfirmAndNext() {
+        if (!isActive || !isWaitingConfirm) return;
+        stopPersistentReminder();
+        isWaitingConfirm = false;
+        updateWaitingVisuals();
+        currentStepIndex++;
+        if (currentStepIndex < steps.length) {
+            startStepCountdown(currentStepIndex);
+        } else {
+            finishAllSteps();
+        }
+    }
+
+    function finishAllSteps() {
+        clearTimerRAF();
+        stopPersistentReminder();
+        isActive = false;
+        isWaitingConfirm = false;
+        isPaused = false;
+        targetEndTime = null;
+        playEnhancedAlert();
+        if (window.navigator && window.navigator.vibrate) window.navigator.vibrate([500,200,500]);
+        setTimeout(() => alert('🎉 恭喜！全部档位已完成！ 吸奶流程结束。'), 100);
+        timerCard.style.display = 'none';
+        presetCard.style.display = 'block';
+        enableEditMode(true);
+        currentStepIndex = 0;
+        remainingSeconds = 0;
+    }
+
+    function stopProcess() {
+        if (!isActive) return;
+        clearTimerRAF();
+        stopPersistentReminder();
+        isActive = false;
+        isWaitingConfirm = false;
+        isPaused = false;
+        targetEndTime = null;
+        updateWaitingVisuals();
+        timerCard.style.display = 'none';
+        presetCard.style.display = 'block';
+        enableEditMode(true);
+        currentStepIndex = 0;
+        remainingSeconds = 0;
+        renderStepsEditor();
+    }
+
+    function togglePause() {
+        if (!isActive || isWaitingConfirm) return;
+        if (isPaused) {
+            if (remainingSeconds > 0) {
+                targetEndTime = Date.now() + remainingSeconds * 1000;
+            } else {
+                if (!isWaitingConfirm) onCurrentStepFinish();
+                return;
+            }
+            isPaused = false;
+            startTimerRAF();
+            pauseResumeBtn.innerHTML = '⏸ 暂停';
+        } else {
+            if (targetEndTime) {
+                const now = Date.now();
+                remainingSeconds = Math.max(0, Math.ceil((targetEndTime - now) / 1000));
+                targetEndTime = null;
+            }
+            isPaused = true;
+            clearTimerRAF();
+            timerDisplay.innerText = formatTime(remainingSeconds);
+            pauseResumeBtn.innerHTML = '▶ 继续';
+        }
+    }
+
+    function enableEditMode(enable) {
+        if (enable) {
+            presetCard.style.opacity = '1'; presetCard.style.pointerEvents = 'auto';
+            addStepBtn.disabled = false; resetDefaultBtn.disabled = false; startBtn.disabled = false;
+        } else {
+            presetCard.style.opacity = '0.7'; presetCard.style.pointerEvents = 'none';
+            addStepBtn.disabled = true; resetDefaultBtn.disabled = true; startBtn.disabled = true;
+        }
+    }
+
+    async function startProcess() {
+        if (steps.length === 0) { alert('请至少添加一个档位'); return; }
+        if (isActive) return;
+        if (!isUnlocked) {
+            if (!consumeTrial()) {
+                const unlocked = await showUnlockModal();
+                if (!unlocked) return;
+            }
+        }
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+        }
+        clearTimerRAF();
+        stopPersistentReminder();
+        isActive = true;
+        isWaitingConfirm = false;
+        isPaused = false;
+        currentStepIndex = 0;
+        presetCard.style.display = 'none';
+        timerCard.style.display = 'block';
+        enableEditMode(false);
+        updateWaitingVisuals();
+        startStepCountdown(0);
+    }
+
+    // 监听页面可见性变化
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden && isActive && !isWaitingConfirm && targetEndTime) {
+            const now = Date.now();
+            if (now >= targetEndTime) {
+                clearTimerRAF();
+                onCurrentStepFinish();
+            }
+        }
+    });
+
+    // 预设管理
+    function renderStepsEditor() {
+        if (isActive) return;
+        stepsContainer.innerHTML = '';
+        if (steps.length === 0) {
+            const emptyDiv = document.createElement('div');
+            emptyDiv.className = 'info-text';
+            emptyDiv.innerText = '✨ 点击下方"添加档位"来设置吸奶方案';
+            emptyDiv.style.padding = '20px';
+            stepsContainer.appendChild(emptyDiv);
+        } else {
+            steps.forEach((step, idx) => {
+                const stepDiv = document.createElement('div');
+                stepDiv.className = 'step-item';
+                stepDiv.innerHTML = `
+                    <div class="step-index">${idx+1}</div>
+                    <div class="step-name"><input type="text" value="${escapeHtml(step.name)}" data-idx="${idx}" data-field="name" placeholder="档位名称"></div>
+                    <div class="step-time"><input type="number" step="0.5" min="0.1" value="${step.durationMinutes}" data-idx="${idx}" data-field="minutes" placeholder="分钟"></div>
+                    <button class="delete-btn" data-idx="${idx}">🗑️</button>
+                `;
+                stepsContainer.appendChild(stepDiv);
+            });
+        }
+        document.querySelectorAll('.step-name input').forEach(input => {
+            input.addEventListener('change', (e) => {
+                const idx = parseInt(e.target.dataset.idx);
+                if (!isNaN(idx) && steps[idx]) steps[idx].name = e.target.value.trim() || '档位';
+                saveToLocal();
+            });
+        });
+        document.querySelectorAll('.step-time input').forEach(input => {
+            input.addEventListener('change', (e) => {
+                const idx = parseInt(e.target.dataset.idx);
+                if (!isNaN(idx) && steps[idx]) {
+                    let val = parseFloat(e.target.value);
+                    if (isNaN(val) || val <= 0) val = 0.5;
+                    steps[idx].durationMinutes = val;
+                }
+                saveToLocal();
+            });
+        });
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const idx = parseInt(btn.dataset.idx);
+                if (!isNaN(idx)) {
+                    steps.splice(idx, 1);
+                    renderStepsEditor();
+                    saveToLocal();
+                }
+            });
+        });
+    }
+
+    function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, function(m){ if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
+    function saveToLocal() { localStorage.setItem('lactationSteps', JSON.stringify(steps)); }
+    function loadFromLocal() {
+        const saved = localStorage.getItem('lactationSteps');
+        if (saved) { try { let parsed = JSON.parse(saved); if (Array.isArray(parsed) && parsed.length) { steps = parsed; return; } } catch(e){} }
+        steps = [
+            { name: "按摩模式", durationMinutes: 3 },
+            { name: "吸乳模式", durationMinutes: 2 },
+            { name: "混合模式", durationMinutes: 3 },
+            { name: "按摩模式", durationMinutes: 2 },
+            { name: "吸乳模式", durationMinutes: 3 }
+        ];
+        saveToLocal();
+    }
+    function resetToExample() {
+        if (isActive) return;
+        steps = [
+            { name: "按摩模式", durationMinutes: 3 },
+            { name: "吸乳模式", durationMinutes: 2 },
+            { name: "混合模式", durationMinutes: 3 },
+            { name: "按摩模式", durationMinutes: 2 },
+            { name: "吸乳模式", durationMinutes: 3 }
+        ];
+        saveToLocal(); renderStepsEditor();
+    }
+
+    // 事件绑定
+    addStepBtn.onclick = () => { if (!isActive) { steps.push({ name: `档位${steps.length+1}`, durationMinutes: 2 }); renderStepsEditor(); saveToLocal(); } };
+    resetDefaultBtn.onclick = () => { if (!isActive) resetToExample(); };
+    startBtn.onclick = async () => {
+        if (isActive) return;
+        const nameInputs = document.querySelectorAll('.step-name input');
+        const timeInputs = document.querySelectorAll('.step-time input');
+        if (nameInputs.length === steps.length) {
+            for (let i = 0; i < steps.length; i++) {
+                if (nameInputs[i]) steps[i].name = nameInputs[i].value.trim() || '档位';
+                if (timeInputs[i]) {
+                    let t = parseFloat(timeInputs[i].value);
+                    if (!isNaN(t) && t > 0) steps[i].durationMinutes = t;
+                }
+            }
+            saveToLocal();
+        }
+        await startProcess();
+    };
+    stopProcessBtn.onclick = stopProcess;
+    pauseResumeBtn.onclick = togglePause;
+    nextStepConfirmBtn.onclick = () => { if (isActive && isWaitingConfirm) manualConfirmAndNext(); };
+
+    // 初始化
+    loadFromLocal(); renderStepsEditor(); loadTrialStatus();
+    
+    // 激活音频
+    window.addEventListener('touchstart', function once() { 
+        if (!audioCtx) { 
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)(); 
+            if (audioCtx.state === 'suspended') audioCtx.resume(); 
+        } 
+        window.removeEventListener('touchstart', once); 
+    }, { once: true });
+</script>
+</body>
 </html>
